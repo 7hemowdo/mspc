@@ -1,0 +1,49 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import ContactBand from "@components/ContactBand.astro";
+import PageHeader from "@components/PageHeader.astro";
+import ProductCard from "@components/ProductCard.astro";
+import { categories, getProductsByCategory } from "@data/products";
+
+export function getStaticPaths() {
+  return categories.map((category) => ({
+    params: { slug: category.slug },
+    props: { category }
+  }));
+}
+
+const { category } = Astro.props;
+const products = getProductsByCategory(category.slug);
+---
+
+<BaseLayout
+  title={`${category.name} | MSPC Gambia`}
+  description={`${category.description} Available through MSPC in The Gambia.`}
+>
+  <main>
+    <PageHeader
+      eyebrow="Product Category"
+      title={`${category.name} in The Gambia`}
+      description={category.description}
+    />
+
+    <section class="section">
+      <div class="container">
+        {products.length > 0 ? (
+          <div class="product-grid product-grid--four">
+            {products.map((product) => <ProductCard product={product} />)}
+          </div>
+        ) : (
+          <div class="trust-panel">
+            <h2>Products are being added.</h2>
+            <p>
+              Contact MSPC on WhatsApp to ask about current availability for this category.
+            </p>
+          </div>
+        )}
+      </div>
+    </section>
+
+    <ContactBand />
+  </main>
+</BaseLayout>

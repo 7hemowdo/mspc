@@ -1,0 +1,12 @@
+---
+type Props = {
+  compact?: boolean;
+};
+
+const { compact = false } = Astro.props;
+---
+
+<a class:list={["logo", { "logo--compact": compact }]} href="/" aria-label="MSPC Gambia home">
+  <img src="/mspc-logo.png" alt="MSPC Gambia" width="317" height="329" />
+  {!compact && <span class="logo-country">Gambia</span>}
+</a>

@@ -1,0 +1,38 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import PageHeader from "@components/PageHeader.astro";
+---
+
+<BaseLayout
+  title="Policies | MSPC Gambia"
+  description="MSPC Gambia policies for product inquiries, availability, and customer support."
+>
+  <main>
+    <PageHeader
+      eyebrow="Policies"
+      title="Product Inquiry Policies"
+      description="Simple information for customers asking about availability, product support, and contact."
+    />
+
+    <section class="section">
+      <div class="container contact-card-grid">
+        <div class="contact-card">
+          <strong>Product Details</strong>
+          <span>Product details may change as stock changes. Customers should confirm the item before visiting.</span>
+        </div>
+        <div class="contact-card">
+          <strong>Availability</strong>
+          <span>Availability can change. Customers should confirm by WhatsApp before visiting.</span>
+        </div>
+        <div class="contact-card">
+          <strong>Orders</strong>
+          <span>This website is a catalog and inquiry site. It does not process online orders or payments.</span>
+        </div>
+        <div class="contact-card">
+          <strong>Support</strong>
+          <span>Product support and warranty details depend on the product and supplier terms.</span>
+        </div>
+      </div>
+    </section>
+  </main>
+</BaseLayout>

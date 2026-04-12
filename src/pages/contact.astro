@@ -1,0 +1,52 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import PageHeader from "@components/PageHeader.astro";
+import { site } from "@data/site";
+---
+
+<BaseLayout
+  title="Contact MSPC Gambia"
+  description="Contact MSPC Gambia for electrical, networking, power backup, CCTV, solar, and technical product inquiries."
+>
+  <main>
+    <PageHeader
+      eyebrow="Contact"
+      title="Contact MSPC about products and availability."
+      description="Use WhatsApp, phone, or email to ask about products for homes, offices, shops, and installations."
+    />
+
+    <section class="section">
+      <div class="container contact-card-grid">
+        <div class="contact-card">
+          <strong>WhatsApp</strong>
+          <a href={site.whatsappUrl}>{site.whatsapp}</a>
+        </div>
+        <div class="contact-card">
+          <strong>Phone</strong>
+          <span>{site.phone}</span>
+        </div>
+        <div class="contact-card">
+          <strong>Email</strong>
+          <a href={`mailto:${site.email}`}>{site.email}</a>
+        </div>
+        <div class="contact-card">
+          <strong>Location</strong>
+          <span>{site.address}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact-band">
+      <div class="container contact-band-inner">
+        <div>
+          <p class="eyebrow">Fast Inquiry</p>
+          <h2>Send the product name on WhatsApp and MSPC can confirm availability.</h2>
+        </div>
+        <div class="contact-band-actions">
+          <a class="button button--primary" href="/categories/">Browse Products</a>
+          <a class="button button--whatsapp" href={site.whatsappUrl}>Open WhatsApp</a>
+        </div>
+      </div>
+    </section>
+  </main>
+</BaseLayout>

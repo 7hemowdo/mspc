@@ -1,0 +1,40 @@
+---
+import Logo from "@components/Logo.astro";
+import { navItems, site } from "@data/site";
+
+type Props = {
+  currentPath?: string;
+};
+
+const { currentPath = "/" } = Astro.props;
+
+function isActive(href: string) {
+  if (href === "/") return currentPath === "/";
+  return currentPath.startsWith(href);
+}
+---
+
+<header class="site-header">
+  <div class="container header-inner">
+    <Logo />
+
+    <input class="nav-toggle" id="nav-toggle" type="checkbox" aria-label="Toggle navigation" />
+    <label class="menu-button" for="nav-toggle" aria-hidden="true">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
+
+    <nav class="site-nav" aria-label="Primary navigation">
+      {navItems.map((item) => (
+        <a class:list={[{ active: isActive(item.href) }]} href={item.href}>
+          {item.label}
+        </a>
+      ))}
+    </nav>
+
+    <a class="header-whatsapp" href={site.whatsappUrl}>
+      WhatsApp
+    </a>
+  </div>
+</header>

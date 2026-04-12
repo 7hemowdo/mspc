@@ -1,0 +1,22 @@
+---
+import type { Category } from "@data/products";
+
+type Props = {
+  category: Category;
+  large?: boolean;
+};
+
+const { category, large = false } = Astro.props;
+---
+
+<a class:list={["category-card", { "category-card--large": large }]} href={`/categories/${category.slug}/`}>
+  <span class="category-card-media">
+    <img src={category.image} alt={`${category.name} products`} loading={large ? "eager" : "lazy"} />
+  </span>
+  <span class="category-card-content">
+    <span class="eyebrow">{category.featured ? "Core Category" : "Product Category"}</span>
+    <strong>{category.name}</strong>
+    <span>{category.description}</span>
+    <em>View Category</em>
+  </span>
+</a>

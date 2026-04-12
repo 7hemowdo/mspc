@@ -1,0 +1,117 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import CategoryCard from "@components/CategoryCard.astro";
+import ContactBand from "@components/ContactBand.astro";
+import ProductCard from "@components/ProductCard.astro";
+import { categories, visibleProducts } from "@data/products";
+import { site } from "@data/site";
+
+const products = visibleProducts();
+const featuredProducts = products.filter((product) => product.isFeatured).slice(0, 3);
+const newProducts = products.filter((product) => product.isNewArrival).slice(0, 4);
+const heroImage = categories.find((category) => category.slug === "routers-networking")?.image ?? categories[0].image;
+---
+
+<BaseLayout>
+  <main>
+    <section class="hero">
+      <img src={heroImage} alt="Networking and electrical products" loading="eager" />
+      <div class="container hero-inner">
+        <div class="hero-content">
+          <p class="eyebrow">Electrical, Networking, Power Backup</p>
+          <h1>Electrical, Networking & Power Backup Products in The Gambia</h1>
+          <p>
+            Find routers, NanoStations, UPS units, CCTV equipment, solar parts,
+            cables, and electrical products.
+          </p>
+          <div class="hero-actions">
+            <a class="button button--primary" href="/categories/">Browse Products</a>
+            <a class="button button--whatsapp" href={site.whatsappUrl}>Contact on WhatsApp</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Product Range</p>
+            <h2>Categories MSPC Supplies</h2>
+          </div>
+          <a class="link-arrow" href="/categories/">View All Categories</a>
+        </div>
+        <div class="category-grid">
+          {categories.map((category, index) => (
+            <CategoryCard category={category} large={index === 0} />
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--soft">
+      <div class="container">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Featured</p>
+            <h2>Featured Products</h2>
+          </div>
+          <a class="link-arrow" href="/featured/">View Featured Products</a>
+        </div>
+        <div class="product-grid">
+          {featuredProducts.map((product) => <ProductCard product={product} />)}
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Just In</p>
+            <h2>New Arrivals</h2>
+          </div>
+          <a class="link-arrow" href="/new-arrivals/">View New Arrivals</a>
+        </div>
+        <div class="product-grid product-grid--four">
+          {newProducts.map((product) => <ProductCard product={product} />)}
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--soft">
+      <div class="container trust-grid">
+        <div class="trust-panel">
+          <p class="eyebrow">MSPC Stock</p>
+          <h2>Products for power, networks, security, and installations.</h2>
+          <p>
+            Browse the main categories MSPC customers ask for most often.
+          </p>
+          <div class="trust-points">
+            <div class="trust-point">
+              <strong>Electrical</strong>
+              <span>Breakers, power supplies, wiring parts.</span>
+            </div>
+            <div class="trust-point">
+              <strong>Networking</strong>
+              <span>Routers, switches, NanoStations, connectors.</span>
+            </div>
+            <div class="trust-point">
+              <strong>Power Backup</strong>
+              <span>UPS units, inverters, solar controllers.</span>
+            </div>
+            <div class="trust-point">
+              <strong>Security</strong>
+              <span>CCTV products and installation accessories.</span>
+            </div>
+          </div>
+        </div>
+        <div class="trust-image">
+          <img src={categories[0].image} alt="Electrical products and installation equipment" loading="lazy" />
+        </div>
+      </div>
+    </section>
+
+    <ContactBand />
+  </main>
+</BaseLayout>

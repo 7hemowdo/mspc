@@ -1,0 +1,28 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import ContactBand from "@components/ContactBand.astro";
+import PageHeader from "@components/PageHeader.astro";
+import ProductCard from "@components/ProductCard.astro";
+import { visibleProducts } from "@data/products";
+
+const products = visibleProducts().filter((product) => product.isFeatured);
+---
+
+<BaseLayout
+  title="Featured Products | MSPC Gambia"
+  description="Featured electrical, networking, power backup, CCTV, solar, and installation products from MSPC Gambia."
+>
+  <main>
+    <PageHeader
+      eyebrow="Featured"
+      title="Featured Products"
+      description="Products customers often ask about for homes, offices, shops, and installations."
+    />
+    <section class="section">
+      <div class="container product-grid product-grid--four">
+        {products.map((product) => <ProductCard product={product} />)}
+      </div>
+    </section>
+    <ContactBand />
+  </main>
+</BaseLayout>

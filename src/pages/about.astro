@@ -1,0 +1,62 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import ContactBand from "@components/ContactBand.astro";
+import PageHeader from "@components/PageHeader.astro";
+import { categories } from "@data/products";
+---
+
+<BaseLayout
+  title="About MSPC Gambia"
+  description="Learn about MSPC Gambia, a local supplier of electrical, networking, power backup, CCTV, solar, and technical products."
+>
+  <main>
+    <PageHeader
+      eyebrow="About MSPC"
+      title="Electrical, networking, and backup power products in The Gambia."
+      description="MSPC supplies products for power, connectivity, security, and installation work."
+    />
+
+    <section class="section">
+      <div class="container trust-grid">
+        <div>
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Our Focus</p>
+              <h2>Products customers can ask for by name or category.</h2>
+            </div>
+          </div>
+          <p>
+            MSPC focuses on electrical products, routers, NanoStations, backup
+            power, CCTV equipment, solar products, cables, and accessories.
+          </p>
+        </div>
+        <div class="trust-image">
+          <img src={categories[1].image} alt="Power backup equipment" loading="lazy" />
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--soft">
+      <div class="container contact-card-grid">
+        <div class="contact-card">
+          <strong>Electrical</strong>
+          <span>Breakers, power supplies, wiring parts, and panel accessories.</span>
+        </div>
+        <div class="contact-card">
+          <strong>Networking</strong>
+          <span>Routers, switches, NanoStations, cables, and connectors.</span>
+        </div>
+        <div class="contact-card">
+          <strong>Power Backup</strong>
+          <span>UPS units, inverters, stabilizers, batteries, and solar parts.</span>
+        </div>
+        <div class="contact-card">
+          <strong>Security</strong>
+          <span>CCTV cameras and installation accessories.</span>
+        </div>
+      </div>
+    </section>
+
+    <ContactBand />
+  </main>
+</BaseLayout>

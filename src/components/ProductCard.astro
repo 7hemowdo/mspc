@@ -1,0 +1,33 @@
+---
+import Badge from "@components/Badge.astro";
+import { getCategory } from "@data/products";
+import type { Product } from "@data/products";
+
+type Props = {
+  product: Product;
+};
+
+const { product } = Astro.props;
+const category = getCategory(product.categorySlug);
+const statusLabel = product.status === "available" ? "Available" : "Out of Stock";
+const statusVariant = product.status === "available" ? "available" : "out-of-stock";
+---
+
+<article class="product-card">
+  <a class="product-card-media" href={`/products/${product.slug}/`} aria-label={`View ${product.name}`}>
+    <img src={product.image} alt={product.name} loading="lazy" />
+    <span class="product-card-badges">
+      {product.isFeatured && <Badge variant="featured" label="Featured" />}
+      {product.isNewArrival && <Badge variant="new" label="New Arrival" />}
+      <Badge variant={statusVariant} label={statusLabel} />
+    </span>
+  </a>
+  <div class="product-card-content">
+    <p class="product-card-category">{category?.name ?? "MSPC Product"}</p>
+    <h3><a href={`/products/${product.slug}/`}>{product.name}</a></h3>
+    <p>{product.shortDescription}</p>
+    <div class="product-card-actions">
+      <a class="button button--primary" href={`/products/${product.slug}/`}>View Details</a>
+    </div>
+  </div>
+</article>

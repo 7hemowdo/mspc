@@ -1,0 +1,97 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import Badge from "@components/Badge.astro";
+import ContactBand from "@components/ContactBand.astro";
+import ProductCard from "@components/ProductCard.astro";
+import { categories, getCategory, visibleProducts } from "@data/products";
+import { site } from "@data/site";
+
+export function getStaticPaths() {
+  return visibleProducts().map((product) => ({
+    params: { slug: product.slug },
+    props: { product }
+  }));
+}
+
+const { product } = Astro.props;
+const category = getCategory(product.categorySlug) ?? categories[0];
+const relatedProducts = visibleProducts()
+  .filter((item) => item.slug !== product.slug && item.categorySlug === product.categorySlug)
+  .slice(0, 3);
+const fallbackRelated = visibleProducts()
+  .filter((item) => item.slug !== product.slug)
+  .slice(0, 3);
+const related = relatedProducts.length > 0 ? relatedProducts : fallbackRelated;
+const statusLabel = product.status === "available" ? "Available" : "Out of Stock";
+const statusVariant = product.status === "available" ? "available" : "out-of-stock";
+const message = encodeURIComponent(`Hello MSPC, I would like to ask about ${product.name}.`);
+---
+
+<BaseLayout
+  title={`${product.name} | MSPC Gambia`}
+  description={`${product.shortDescription} Contact MSPC for availability in The Gambia.`}
+>
+  <main class="container">
+    <article class="product-detail">
+      <div class="product-detail-media">
+        <img src={product.image} alt={product.name} loading="eager" />
+      </div>
+
+      <div class="product-detail-info">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="/">Home</a>
+          <span>/</span>
+          <a href="/categories/">Categories</a>
+          <span>/</span>
+          <a href={`/categories/${category.slug}/`}>{category.name}</a>
+          <span>/</span>
+          <span aria-current="page">{product.name}</span>
+        </nav>
+
+        <div class="product-meta">
+          {product.isFeatured && <Badge variant="featured" label="Featured" />}
+          {product.isNewArrival && <Badge variant="new" label="New Arrival" />}
+          <Badge variant={statusVariant} label={statusLabel} />
+        </div>
+
+        <h1>{product.name}</h1>
+        <p>{product.fullDescription}</p>
+
+        <div class="spec-grid">
+          {product.specs.map((spec) => (
+            <div class="spec-card">
+              <span>{spec.label}</span>
+              <strong>{spec.value}</strong>
+            </div>
+          ))}
+        </div>
+
+        <div class="detail-actions">
+          <a class="button button--whatsapp" href={`${site.whatsappUrl}?text=${message}`} target="_blank" rel="noopener noreferrer">
+            Ask on WhatsApp
+          </a>
+        </div>
+
+        <div class="spec-card">
+          <span>MSPC Stock</span>
+          <strong>Available through MSPC in The Gambia</strong>
+        </div>
+      </div>
+    </article>
+
+    <section class="section">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Related</p>
+          <h2>Related Products</h2>
+        </div>
+        <a class="link-arrow" href={`/categories/${category.slug}/`}>View Category</a>
+      </div>
+      <div class="product-grid">
+        {related.map((item) => <ProductCard product={item} />)}
+      </div>
+    </section>
+  </main>
+
+  <ContactBand />
+</BaseLayout>

@@ -1,0 +1,53 @@
+---
+import Logo from "@components/Logo.astro";
+import { categories } from "@data/products";
+import { navItems, site } from "@data/site";
+---
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div class="footer-brand">
+      <Logo />
+      <p>
+        Electrical, networking, power backup, CCTV, solar, and installation
+        products in The Gambia.
+      </p>
+      <a class="button button--whatsapp footer-cta" href={site.whatsappUrl}>Ask on WhatsApp</a>
+    </div>
+
+    <div>
+      <h2>Products</h2>
+      <ul>
+        {categories.slice(0, 6).map((category) => (
+          <li><a href={`/categories/${category.slug}/`}>{category.name}</a></li>
+        ))}
+      </ul>
+    </div>
+
+    <div>
+      <h2>Company</h2>
+      <ul>
+        {navItems.filter((item) => item.href !== "/").map((item) => (
+          <li><a href={item.href}>{item.label}</a></li>
+        ))}
+      </ul>
+    </div>
+
+    <div>
+      <h2>Contact</h2>
+      <ul>
+        <li>{site.phone}</li>
+        <li><a href={`mailto:${site.email}`}>{site.email}</a></li>
+        <li>{site.address}</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="container footer-bottom">
+    <p>&copy; 2026 MSPC Gambia. All rights reserved.</p>
+    <div>
+      <a href="/policies/">Policies</a>
+      <a href="/contact/">Contact</a>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,32 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import CategoryCard from "@components/CategoryCard.astro";
+import ContactBand from "@components/ContactBand.astro";
+import PageHeader from "@components/PageHeader.astro";
+import { categories } from "@data/products";
+---
+
+<BaseLayout
+  title="All Categories | MSPC Gambia"
+  description="Browse MSPC product categories including electrical products, power backup, networking, NanoStations, CCTV, solar power, and cables."
+>
+  <main>
+    <PageHeader
+      eyebrow="All Categories"
+      title="Browse MSPC Product Categories"
+      description="Find electrical products, routers, NanoStations, power backup systems, CCTV equipment, solar power products, cables, and accessories."
+    />
+
+    <section class="section">
+      <div class="container">
+        <div class="category-grid">
+          {categories.map((category, index) => (
+            <CategoryCard category={category} large={index === 0 || index === 5} />
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <ContactBand />
+  </main>
+</BaseLayout>
