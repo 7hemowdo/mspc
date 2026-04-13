@@ -1,0 +1,13 @@
+name = "mspc-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+account_id = "e24e3584fd1840eae19fca4e9e8642f0"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mspc-db"
+database_id = "11a8d55e-216a-4dde-8bd3-8157c650d7fc"
+
+[vars]
+CLOUDINARY_CLOUD_NAME = "dslbufoxp"
+CORS_ORIGIN = "https://mspcgambia.com"

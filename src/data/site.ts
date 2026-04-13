@@ -7,11 +7,11 @@ export const site = {
   phone: "+220 123 4567",
   whatsapp: "+220 123 4567",
   whatsappUrl: "https://wa.me/2201234567",
-  email: "info@mspc.gm",
+  email: "info@mspcgambia.com",
   address: "Kanifing Municipal Area, The Gambia",
   social: {
     facebook: "#",
-    website: "#"
+    website: "https://mspcgambia.com"
   }
 };
 
