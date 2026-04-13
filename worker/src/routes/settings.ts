@@ -28,5 +28,5 @@ export async function handleSettings(request: Request, env: Env): Promise<Respon
     return json({ success: true }, 200, origin);
   }
 
-  return error("Method not allowed", 405);
+  return error("Method not allowed", 405, origin);
 }

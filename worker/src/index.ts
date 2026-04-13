@@ -21,7 +21,7 @@ export default {
     //         /api/products,   /api/products/:id
     //         /api/upload
 
-    if (segments[0] !== "api") return error("Not found", 404);
+    if (segments[0] !== "api") return error("Not found", 404, origin);
 
     try {
       if (segments[1] === "categories") {
@@ -50,7 +50,7 @@ export default {
         return error("Unauthorized", 401, origin);
       }
 
-      return error("Not found", 404);
+      return error("Not found", 404, origin);
     } catch (err) {
       console.error(err);
       return error("Internal server error", 500, origin);

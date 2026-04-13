@@ -112,7 +112,7 @@ export async function handleProducts(request: Request, env: Env): Promise<Respon
     return json({ id: productId, slug }, 201, origin);
   }
 
-  return error("Method not allowed", 405);
+  return error("Method not allowed", 405, origin);
 }
 
 export async function handleProduct(
@@ -215,5 +215,5 @@ export async function handleProduct(
     return json({ success: true }, 200, origin);
   }
 
-  return error("Method not allowed", 405);
+  return error("Method not allowed", 405, origin);
 }
