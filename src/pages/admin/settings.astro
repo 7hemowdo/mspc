@@ -1,0 +1,138 @@
+---
+import AdminLayout from "@layouts/AdminLayout.astro";
+---
+
+<AdminLayout title="Settings" activePage="settings">
+  <div class="admin-card" style="max-width:640px">
+    <div class="admin-card-header">
+      <h2>Business Information</h2>
+    </div>
+    <div class="admin-card-body">
+      <form class="admin-form" id="settings-form" novalidate>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="business-name">Business Name</label>
+            <input class="form-input" id="business-name" type="text" placeholder="MSPC Gambia" />
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input class="form-input" id="phone" type="tel" placeholder="+220 XXX XXXX" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="whatsapp">WhatsApp Number</label>
+            <input class="form-input" id="whatsapp" type="tel" placeholder="+220 XXX XXXX" />
+            <p class="form-hint">Include country code, no spaces (e.g. +2207001234)</p>
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input class="form-input" id="email" type="email" placeholder="info@mspcgambia.com" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="address">Business Address</label>
+          <input class="form-input" id="address" type="text" placeholder="Kanifing Municipal Area, The Gambia" />
+        </div>
+
+        <div class="form-group">
+          <label for="facebook">Facebook URL</label>
+          <input class="form-input" id="facebook" type="url" placeholder="https://facebook.com/mspcgambia" />
+        </div>
+
+        <div class="form-group">
+          <label for="hero-title">Homepage Hero Title</label>
+          <input class="form-input" id="hero-title" type="text" placeholder="Electrical, Networking & Power Backup Products in The Gambia" />
+        </div>
+
+        <div class="form-group">
+          <label for="hero-subtitle">Homepage Hero Subtitle</label>
+          <textarea class="form-textarea" id="hero-subtitle" rows="3" placeholder="Find routers, NanoStations, UPS units, CCTV equipment…"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn--primary" type="submit" id="save-btn">Save Settings</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="admin-card" style="max-width:640px;margin-top:24px">
+    <div class="admin-card-header">
+      <h2>Admin Access</h2>
+    </div>
+    <div class="admin-card-body" style="display:grid;gap:16px">
+      <p style="color:var(--muted);font-size:0.9rem">
+        Your admin secret key is stored securely on Cloudflare Workers. To change it,
+        update the <code style="background:var(--soft-2);padding:2px 6px;border-radius:4px;font-size:0.85rem">ADMIN_SECRET</code>
+        environment variable in the Cloudflare dashboard or via Wrangler CLI.
+      </p>
+      <a
+        class="btn btn--ghost btn--sm"
+        href="https://dash.cloudflare.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        style="align-self:start"
+      >
+        Open Cloudflare Dashboard ↗
+      </a>
+    </div>
+  </div>
+</AdminLayout>
+
+<script type="module">
+  import { api, showToast, setLoading } from "/admin/utils.js";
+
+  const SETTINGS_KEYS = [
+    "business_name", "phone", "whatsapp", "email",
+    "address", "facebook", "hero_title", "hero_subtitle",
+  ];
+
+  const FIELD_MAP = {
+    business_name:  "business-name",
+    phone:          "phone",
+    whatsapp:       "whatsapp",
+    email:          "email",
+    address:        "address",
+    facebook:       "facebook",
+    hero_title:     "hero-title",
+    hero_subtitle:  "hero-subtitle",
+  };
+
+  async function loadSettings() {
+    const res = await api("/api/settings");
+    if (!res?.ok) return;
+    const settings = await res.json();
+    settings.forEach(({ key, value }) => {
+      const fieldId = FIELD_MAP[key];
+      if (fieldId) {
+        const el = document.getElementById(fieldId);
+        if (el) el.value = value;
+      }
+    });
+  }
+
+  document.getElementById("settings-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById("save-btn");
+    setLoading(btn, true);
+
+    const payload = SETTINGS_KEYS.map(key => ({
+      key,
+      value: document.getElementById(FIELD_MAP[key])?.value.trim() ?? "",
+    }));
+
+    const res = await api("/api/settings", { method: "POST", body: payload });
+    if (res?.ok) {
+      showToast("Settings saved!");
+    } else {
+      showToast("Failed to save settings", "error");
+    }
+    setLoading(btn, false);
+  });
+
+  loadSettings();
+</script>

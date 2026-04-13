@@ -1,0 +1,161 @@
+---
+import AdminLayout from "@layouts/AdminLayout.astro";
+---
+
+<AdminLayout title="Products" activePage="products">
+  <div slot="topbar-actions">
+    <a class="btn btn--primary" href="/admin/products/add/">+ Add Product</a>
+  </div>
+
+  <div class="admin-card">
+    <div class="admin-card-header">
+      <div class="admin-toolbar" style="flex:1">
+        <div class="admin-search">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="search-input" type="search" placeholder="Search products…" />
+        </div>
+        <select class="form-select" id="filter-status" style="width:auto;min-width:140px">
+          <option value="">All Statuses</option>
+          <option value="available">Available</option>
+          <option value="out-of-stock">Out of Stock</option>
+          <option value="hidden">Hidden</option>
+        </select>
+        <select class="form-select" id="filter-category" style="width:auto;min-width:160px">
+          <option value="">All Categories</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Status</th>
+            <th>Featured</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="products-tbody">
+          <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--muted)">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</AdminLayout>
+
+<script type="module">
+  import { api, showToast } from "/admin/utils.js";
+
+  let allProducts = [];
+
+  async function load() {
+    const [productsRes, categoriesRes] = await Promise.all([
+      api("/api/products"),
+      api("/api/categories"),
+    ]);
+    if (!productsRes || !categoriesRes) return;
+
+    allProducts = await productsRes.json();
+    const categories = await categoriesRes.json();
+
+    const catSelect = document.getElementById("filter-category");
+    categories.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c.slug;
+      opt.textContent = c.name;
+      catSelect.appendChild(opt);
+    });
+
+    render(allProducts);
+  }
+
+  function render(products) {
+    const tbody = document.getElementById("products-tbody");
+
+    if (!products.length) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="admin-empty"><p>No products found.</p></div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = products.map(p => `
+      <tr>
+        <td><img class="admin-table-img" src="${p.image_url || '/mspc-logo.png'}" alt="${p.name}" /></td>
+        <td><span class="admin-table-name">${p.name}</span></td>
+        <td style="color:var(--muted);font-size:0.88rem">${p.category_name ?? "—"}</td>
+        <td>
+          <select class="form-select" style="padding:6px 32px 6px 10px;font-size:0.82rem" data-id="${p.id}" data-action="status">
+            <option value="available"   ${p.status==="available"   ? "selected":""}>Available</option>
+            <option value="out-of-stock"${p.status==="out-of-stock"? "selected":""}>Out of Stock</option>
+            <option value="hidden"      ${p.status==="hidden"      ? "selected":""}>Hidden</option>
+          </select>
+        </td>
+        <td style="text-align:center">
+          <input type="checkbox" data-id="${p.id}" data-action="featured" ${p.is_featured ? "checked" : ""} style="width:18px;height:18px;cursor:pointer" />
+        </td>
+        <td>
+          <div class="admin-table-actions">
+            <a class="btn btn--ghost btn--sm" href="/admin/products/edit/?id=${p.id}">Edit</a>
+            <button class="btn btn--danger btn--sm" data-id="${p.id}" data-action="delete">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `).join("");
+
+    tbody.querySelectorAll("[data-action='status']").forEach(sel => {
+      sel.addEventListener("change", async (e) => {
+        const res = await api(`/api/products/${e.target.dataset.id}`, {
+          method: "PUT",
+          body: { status: e.target.value },
+        });
+        if (res?.ok) showToast("Status updated");
+        else showToast("Failed to update status", "error");
+      });
+    });
+
+    tbody.querySelectorAll("[data-action='featured']").forEach(cb => {
+      cb.addEventListener("change", async (e) => {
+        const res = await api(`/api/products/${e.target.dataset.id}`, {
+          method: "PUT",
+          body: { is_featured: e.target.checked ? 1 : 0 },
+        });
+        if (res?.ok) showToast(e.target.checked ? "Marked as featured" : "Removed from featured");
+        else showToast("Failed to update", "error");
+      });
+    });
+
+    tbody.querySelectorAll("[data-action='delete']").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        if (!confirm("Delete this product? This cannot be undone.")) return;
+        const res = await api(`/api/products/${e.target.dataset.id}`, { method: "DELETE" });
+        if (res?.ok) {
+          showToast("Product deleted");
+          load();
+        } else {
+          showToast("Failed to delete", "error");
+        }
+      });
+    });
+  }
+
+  function applyFilters() {
+    const search   = document.getElementById("search-input").value.toLowerCase();
+    const status   = document.getElementById("filter-status").value;
+    const category = document.getElementById("filter-category").value;
+
+    render(allProducts.filter(p => {
+      const matchSearch   = !search   || p.name.toLowerCase().includes(search);
+      const matchStatus   = !status   || p.status === status;
+      const matchCategory = !category || p.category_slug === category;
+      return matchSearch && matchStatus && matchCategory;
+    }));
+  }
+
+  document.getElementById("search-input").addEventListener("input", applyFilters);
+  document.getElementById("filter-status").addEventListener("change", applyFilters);
+  document.getElementById("filter-category").addEventListener("change", applyFilters);
+
+  load();
+</script>

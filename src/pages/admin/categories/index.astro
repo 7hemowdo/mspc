@@ -1,0 +1,250 @@
+---
+import AdminLayout from "@layouts/AdminLayout.astro";
+---
+
+<AdminLayout title="Categories" activePage="categories">
+  <div style="display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start">
+
+    <!-- Category list -->
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h2>All Categories</h2>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Name</th>
+              <th>Featured</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="categories-tbody">
+            <tr><td colspan="4" style="text-align:center;padding:32px;color:var(--muted)">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Add / Edit form -->
+    <div class="admin-card" style="position:sticky;top:20px">
+      <div class="admin-card-header">
+        <h2 id="form-title">Add Category</h2>
+      </div>
+      <div class="admin-card-body">
+        <form class="admin-form" id="category-form" novalidate style="gap:18px">
+          <input type="hidden" id="edit-id" />
+
+          <div class="form-group">
+            <label for="cat-name">Name *</label>
+            <input class="form-input" id="cat-name" type="text" placeholder="e.g. Solar Equipment" required />
+          </div>
+
+          <div class="form-group">
+            <label for="cat-slug">Slug</label>
+            <input class="form-input" id="cat-slug" type="text" placeholder="auto-generated" />
+          </div>
+
+          <div class="form-group">
+            <label for="cat-desc">Description</label>
+            <textarea class="form-textarea" id="cat-desc" rows="3" placeholder="Short description of this category…"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Category Image</label>
+            <div class="image-upload">
+              <div class="image-dropzone" id="cat-dropzone" style="min-height:100px">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                <p><strong>Click to upload</strong></p>
+                <input type="file" id="cat-image-file" accept="image/jpeg,image/png,image/webp" />
+              </div>
+              <div class="image-preview" id="cat-image-preview">
+                <img id="cat-preview-img" src="" alt="Preview" />
+                <button class="image-preview-remove" type="button" id="cat-remove-image">✕</button>
+              </div>
+            </div>
+            <input type="hidden" id="cat-image-url" />
+          </div>
+
+          <label class="form-toggle">
+            <input type="checkbox" id="cat-featured" />
+            <div class="form-toggle-label">
+              <strong>Core Category</strong>
+              <span>Highlighted on the homepage</span>
+            </div>
+          </label>
+
+          <div class="form-actions">
+            <button class="btn btn--primary" type="submit" id="cat-submit-btn">Add Category</button>
+            <button class="btn btn--ghost" type="button" id="cat-cancel-btn" style="display:none">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script type="module">
+  import { api, slugify, showToast, setLoading } from "/admin/utils.js";
+
+  // ─── Image upload ─────────────────────────────────────────────────────
+  const dropzone      = document.getElementById("cat-dropzone");
+  const fileInput     = document.getElementById("cat-image-file");
+  const preview       = document.getElementById("cat-image-preview");
+  const previewImg    = document.getElementById("cat-preview-img");
+  const imageUrlInput = document.getElementById("cat-image-url");
+
+  dropzone.addEventListener("click", () => fileInput.click());
+  dropzone.addEventListener("dragover",  (e) => { e.preventDefault(); dropzone.classList.add("dragover"); });
+  dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
+  dropzone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropzone.classList.remove("dragover");
+    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener("change", (e) => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+  document.getElementById("cat-remove-image").addEventListener("click", () => {
+    imageUrlInput.value = "";
+    previewImg.src = "";
+    preview.classList.remove("has-image");
+    dropzone.style.display = "";
+    fileInput.value = "";
+  });
+
+  async function handleFile(file) {
+    dropzone.style.display = "none";
+    preview.classList.add("has-image");
+    previewImg.src = URL.createObjectURL(file);
+    const form = new FormData();
+    form.append("file", file);
+    const res = await api("/api/upload", { method: "POST", body: form, multipart: true });
+    if (res?.ok) {
+      const { url } = await res.json();
+      imageUrlInput.value = url;
+    } else {
+      showToast("Image upload failed", "error");
+    }
+  }
+
+  // ─── Auto-slug ────────────────────────────────────────────────────────
+  document.getElementById("cat-name").addEventListener("input", (e) => {
+    const slugField = document.getElementById("cat-slug");
+    if (!slugField.dataset.edited) {
+      slugField.value = slugify(e.target.value);
+    }
+  });
+  document.getElementById("cat-slug").addEventListener("input", (e) => {
+    e.target.dataset.edited = e.target.value ? "true" : "";
+  });
+
+  // ─── Load & render categories ─────────────────────────────────────────
+  async function loadCategories() {
+    const res = await api("/api/categories");
+    if (!res) return;
+    const cats = await res.json();
+    const tbody = document.getElementById("categories-tbody");
+
+    if (!cats.length) {
+      tbody.innerHTML = `<tr><td colspan="4"><div class="admin-empty"><p>No categories yet. Add one using the form.</p></div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = cats.map(c => `
+      <tr>
+        <td><img class="admin-table-img" src="${c.image_url || '/mspc-logo.png'}" alt="${c.name}" /></td>
+        <td><span class="admin-table-name">${c.name}</span></td>
+        <td style="text-align:center">
+          ${c.featured ? '<span class="status-badge status-badge--available">Yes</span>' : '<span style="color:var(--muted);font-size:0.82rem">—</span>'}
+        </td>
+        <td>
+          <div class="admin-table-actions">
+            <button class="btn btn--ghost btn--sm" data-action="edit" data-id="${c.id}" data-name="${c.name}" data-slug="${c.slug}" data-desc="${c.description}" data-image="${c.image_url}" data-featured="${c.featured}">Edit</button>
+            <button class="btn btn--danger btn--sm" data-action="delete" data-id="${c.id}">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `).join("");
+
+    tbody.querySelectorAll("[data-action='edit']").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const d = e.target.dataset;
+        document.getElementById("edit-id").value     = d.id;
+        document.getElementById("cat-name").value    = d.name;
+        document.getElementById("cat-slug").value    = d.slug;
+        document.getElementById("cat-slug").dataset.edited = "true";
+        document.getElementById("cat-desc").value    = d.desc;
+        document.getElementById("cat-featured").checked = d.featured === "1";
+        document.getElementById("cat-image-url").value = d.image;
+        document.getElementById("form-title").textContent = "Edit Category";
+        document.getElementById("cat-submit-btn").textContent = "Save Changes";
+        document.getElementById("cat-cancel-btn").style.display = "";
+
+        if (d.image) {
+          document.getElementById("cat-preview-img").src = d.image;
+          document.getElementById("cat-image-preview").classList.add("has-image");
+          document.getElementById("cat-dropzone").style.display = "none";
+        }
+      });
+    });
+
+    tbody.querySelectorAll("[data-action='delete']").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        if (!confirm("Delete this category? Products in it will need to be reassigned.")) return;
+        const res = await api(`/api/categories/${e.target.dataset.id}`, { method: "DELETE" });
+        if (res?.ok) { showToast("Category deleted"); loadCategories(); }
+        else showToast("Failed to delete", "error");
+      });
+    });
+  }
+
+  // ─── Cancel edit ─────────────────────────────────────────────────────
+  document.getElementById("cat-cancel-btn").addEventListener("click", resetForm);
+
+  function resetForm() {
+    document.getElementById("edit-id").value = "";
+    document.getElementById("category-form").reset();
+    document.getElementById("cat-slug").dataset.edited = "";
+    document.getElementById("cat-image-url").value = "";
+    document.getElementById("cat-preview-img").src = "";
+    document.getElementById("cat-image-preview").classList.remove("has-image");
+    document.getElementById("cat-dropzone").style.display = "";
+    document.getElementById("form-title").textContent = "Add Category";
+    document.getElementById("cat-submit-btn").textContent = "Add Category";
+    document.getElementById("cat-cancel-btn").style.display = "none";
+  }
+
+  // ─── Submit ──────────────────────────────────────────────────────────
+  document.getElementById("category-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn  = document.getElementById("cat-submit-btn");
+    const id   = document.getElementById("edit-id").value;
+    const name = document.getElementById("cat-name").value.trim();
+    if (!name) { showToast("Name is required", "error"); return; }
+
+    const payload = {
+      name,
+      slug:        document.getElementById("cat-slug").value.trim() || slugify(name),
+      description: document.getElementById("cat-desc").value.trim(),
+      image_url:   document.getElementById("cat-image-url").value.trim(),
+      featured:    document.getElementById("cat-featured").checked ? 1 : 0,
+    };
+
+    setLoading(btn, true);
+    const res = id
+      ? await api(`/api/categories/${id}`, { method: "PUT",  body: payload })
+      : await api("/api/categories",        { method: "POST", body: payload });
+
+    if (res?.ok) {
+      showToast(id ? "Category saved!" : "Category added!");
+      resetForm();
+      loadCategories();
+    } else {
+      showToast("Failed to save category", "error");
+    }
+    setLoading(btn, false);
+  });
+
+  loadCategories();
+</script>

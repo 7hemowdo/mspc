@@ -1,0 +1,84 @@
+---
+import "@styles/admin.css";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Login — MSPC</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <main class="admin-login-page">
+      <div class="admin-login-box">
+        <div class="login-logo">
+          <img src="/mspc-logo.png" alt="MSPC Gambia" />
+          <div>
+            <h1>MSPC Admin</h1>
+            <p>Enter your admin secret key to continue</p>
+          </div>
+        </div>
+
+        <div class="login-error" id="login-error">
+          Incorrect secret key. Please try again.
+        </div>
+
+        <form class="admin-form" id="login-form" novalidate>
+          <div class="form-group">
+            <label for="secret-key">Secret Key</label>
+            <input
+              class="form-input"
+              id="secret-key"
+              type="password"
+              placeholder="Enter your admin secret key"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+          <button class="btn btn--primary" type="submit" id="login-btn" style="width:100%">
+            Sign In
+          </button>
+        </form>
+      </div>
+    </main>
+
+    <script type="module">
+      import { getToken, setToken, api } from "/admin/utils.js";
+
+      if (getToken()) window.location.href = "/admin/dashboard/";
+
+      const form = document.getElementById("login-form");
+      const btn  = document.getElementById("login-btn");
+      const err  = document.getElementById("login-error");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const key = document.getElementById("secret-key").value.trim();
+        if (!key) return;
+
+        btn.disabled = true;
+        btn.textContent = "Signing in…";
+        err.classList.remove("visible");
+
+        setToken(key);
+        const res = await fetch("https://mspc-api.abdouceesay007.workers.dev/api/auth", {
+          headers: { Authorization: `Bearer ${key}` },
+        });
+
+        if (res.ok) {
+          window.location.href = "/admin/dashboard/";
+        } else {
+          setToken("");
+          err.classList.add("visible");
+          btn.disabled = false;
+          btn.textContent = "Sign In";
+        }
+      });
+    </script>
+  </body>
+</html>
