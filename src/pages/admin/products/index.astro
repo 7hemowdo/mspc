@@ -47,7 +47,7 @@ import AdminLayout from "@layouts/AdminLayout.astro";
 </AdminLayout>
 
 <script type="module">
-  import { api, showToast } from "/admin/utils.js";
+  import { api, showToast, escapeHtml } from "/admin/utils.js";
 
   let allProducts = [];
 
@@ -82,9 +82,9 @@ import AdminLayout from "@layouts/AdminLayout.astro";
 
     tbody.innerHTML = products.map(p => `
       <tr>
-        <td><img class="admin-table-img" src="${p.image_url || '/mspc-logo.png'}" alt="${p.name}" /></td>
-        <td><span class="admin-table-name">${p.name}</span></td>
-        <td style="color:var(--muted);font-size:0.88rem">${p.category_name ?? "—"}</td>
+        <td><img class="admin-table-img" src="${escapeHtml(p.image_url || '/mspc-logo.png')}" alt="${escapeHtml(p.name)}" /></td>
+        <td><span class="admin-table-name">${escapeHtml(p.name)}</span></td>
+        <td style="color:var(--muted);font-size:0.88rem">${escapeHtml(p.category_name ?? "—")}</td>
         <td>
           <select class="form-select" style="padding:6px 32px 6px 10px;font-size:0.82rem" data-id="${p.id}" data-action="status">
             <option value="available"   ${p.status==="available"   ? "selected":""}>Available</option>

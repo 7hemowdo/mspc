@@ -105,7 +105,7 @@ import AdminLayout from "@layouts/AdminLayout.astro";
 </AdminLayout>
 
 <script type="module">
-  import { api, showToast, setLoading } from "/admin/utils.js";
+  import { api, showToast, setLoading, validateImageFile, slugify } from "/admin/utils.js";
 
   const params    = new URLSearchParams(window.location.search);
   const productId = params.get("id");
@@ -160,6 +160,18 @@ import AdminLayout from "@layouts/AdminLayout.astro";
   document.getElementById("loading-state").style.display = "none";
   document.getElementById("form-card").style.display = "";
 
+  // ─── Auto-slug from name (only if not manually edited) ───────────────
+  document.getElementById("name").addEventListener("input", (e) => {
+    const slugField = document.getElementById("slug");
+    if (!slugField.dataset.edited) {
+      slugField.value = slugify(e.target.value);
+    }
+  });
+
+  document.getElementById("slug").addEventListener("input", (e) => {
+    e.target.dataset.edited = e.target.value ? "true" : "";
+  });
+
   // ─── Image upload ─────────────────────────────────────────────────────
   const dropzone    = document.getElementById("dropzone");
   const fileInput   = document.getElementById("image-file");
@@ -186,6 +198,9 @@ import AdminLayout from "@layouts/AdminLayout.astro";
   });
 
   async function handleFile(file) {
+    const validationError = validateImageFile(file);
+    if (validationError) { showToast(validationError, "error"); return; }
+
     dropzone.style.display = "none";
     preview.classList.add("has-image");
     previewImg.src = URL.createObjectURL(file);
@@ -198,6 +213,8 @@ import AdminLayout from "@layouts/AdminLayout.astro";
       imageUrlInput.value = url;
     } else {
       showToast("Image upload failed", "error");
+      preview.classList.remove("has-image");
+      dropzone.style.display = "";
     }
   }
 

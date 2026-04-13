@@ -49,7 +49,7 @@ import AdminLayout from "@layouts/AdminLayout.astro";
 </AdminLayout>
 
 <script type="module">
-  import { api } from "/admin/utils.js";
+  import { api, escapeHtml } from "/admin/utils.js";
 
   async function load() {
     const [productsRes, categoriesRes] = await Promise.all([
@@ -76,14 +76,14 @@ import AdminLayout from "@layouts/AdminLayout.astro";
 
     tbody.innerHTML = products.slice(0, 8).map(p => `
       <tr>
-        <td><img class="admin-table-img" src="${p.image_url || '/mspc-logo.png'}" alt="${p.name}" /></td>
-        <td><span class="admin-table-name">${p.name}</span></td>
-        <td>${p.category_name ?? "—"}</td>
-        <td><span class="status-badge status-badge--${p.status}">${p.status.replace("-", " ")}</span></td>
+        <td><img class="admin-table-img" src="${escapeHtml(p.image_url || '/mspc-logo.png')}" alt="${escapeHtml(p.name)}" /></td>
+        <td><span class="admin-table-name">${escapeHtml(p.name)}</span></td>
+        <td>${escapeHtml(p.category_name ?? "—")}</td>
+        <td><span class="status-badge status-badge--${escapeHtml(p.status)}">${escapeHtml(p.status.replace("-", " "))}</span></td>
         <td>
           <div class="admin-table-actions">
             <a class="btn btn--ghost btn--sm" href="/admin/products/edit/?id=${p.id}">Edit</a>
-            <a class="btn btn--ghost btn--sm" href="/products/${p.slug}/" target="_blank">View</a>
+            <a class="btn btn--ghost btn--sm" href="/products/${escapeHtml(p.slug)}/" target="_blank">View</a>
           </div>
         </td>
       </tr>

@@ -103,7 +103,7 @@ import AdminLayout from "@layouts/AdminLayout.astro";
 </AdminLayout>
 
 <script type="module">
-  import { api, slugify, showToast, setLoading } from "/admin/utils.js";
+  import { api, slugify, showToast, setLoading, validateImageFile } from "/admin/utils.js";
 
   // ─── Load categories ─────────────────────────────────────────────────
   const catRes = await api("/api/categories");
@@ -160,6 +160,9 @@ import AdminLayout from "@layouts/AdminLayout.astro";
   });
 
   async function handleFile(file) {
+    const validationError = validateImageFile(file);
+    if (validationError) { showToast(validationError, "error"); return; }
+
     dropzone.style.display = "none";
     preview.classList.add("has-image");
     previewImg.src = URL.createObjectURL(file);
@@ -173,6 +176,8 @@ import AdminLayout from "@layouts/AdminLayout.astro";
       imageUrlInput.value = url;
     } else {
       showToast("Image upload failed", "error");
+      preview.classList.remove("has-image");
+      dropzone.style.display = "";
       imageUrlInput.value = "";
     }
   }
@@ -197,11 +202,12 @@ import AdminLayout from "@layouts/AdminLayout.astro";
     e.preventDefault();
     const btn = document.getElementById("submit-btn");
 
-    const name     = document.getElementById("name").value.trim();
-    const category = document.getElementById("category").value;
+    const name      = document.getElementById("name").value.trim();
+    const category  = document.getElementById("category").value;
+    const shortDesc = document.getElementById("short-desc").value.trim();
 
-    if (!name || !category) {
-      showToast("Name and category are required", "error");
+    if (!name || !category || !shortDesc) {
+      showToast("Name, category, and short description are required", "error");
       return;
     }
 

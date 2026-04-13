@@ -12,7 +12,7 @@ export async function handleCategories(request: Request, env: Env): Promise<Resp
     return json(results, 200, origin);
   }
 
-  const authError = requireAuth(request, env);
+  const authError = requireAuth(request, env, origin);
   if (authError) return authError;
 
   if (request.method === "POST") {
@@ -25,7 +25,7 @@ export async function handleCategories(request: Request, env: Env): Promise<Resp
       featured?: number;
     };
 
-    if (!body.name || !body.slug) return error("name and slug are required");
+    if (!body.name || !body.slug) return error("name and slug are required", 400, origin);
 
     const result = await env.DB.prepare(
       `INSERT INTO categories (name, slug, description, image_url, sort_order, featured)
@@ -44,7 +44,7 @@ export async function handleCategories(request: Request, env: Env): Promise<Resp
     return json({ id: result.meta.last_row_id }, 201, origin);
   }
 
-  return error("Method not allowed", 405);
+  return error("Method not allowed", 405, origin);
 }
 
 export async function handleCategory(
@@ -58,11 +58,11 @@ export async function handleCategory(
     const row = await env.DB.prepare("SELECT * FROM categories WHERE id = ?")
       .bind(id)
       .first();
-    if (!row) return error("Category not found", 404);
+    if (!row) return error("Category not found", 404, origin);
     return json(row, 200, origin);
   }
 
-  const authError = requireAuth(request, env);
+  const authError = requireAuth(request, env, origin);
   if (authError) return authError;
 
   if (request.method === "PUT") {
@@ -100,9 +100,22 @@ export async function handleCategory(
   }
 
   if (request.method === "DELETE") {
+    // Check if any products belong to this category before deleting
+    const productCount = await env.DB.prepare(
+      "SELECT COUNT(*) as count FROM products WHERE category_id = ?"
+    ).bind(id).first() as { count: number } | null;
+
+    if (productCount && productCount.count > 0) {
+      return error(
+        `Cannot delete category: ${productCount.count} product(s) still assigned to it. Move or delete those products first.`,
+        409,
+        origin
+      );
+    }
+
     await env.DB.prepare("DELETE FROM categories WHERE id = ?").bind(id).run();
     return json({ success: true }, 200, origin);
   }
 
-  return error("Method not allowed", 405);
+  return error("Method not allowed", 405, origin);
 }

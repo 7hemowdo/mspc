@@ -53,7 +53,7 @@ export default {
       return error("Not found", 404);
     } catch (err) {
       console.error(err);
-      return error("Internal server error", 500);
+      return error("Internal server error", 500, origin);
     }
   },
 };

@@ -58,11 +58,29 @@ export function showToast(message, type = "success") {
   toast.textContent = message;
   document.body.appendChild(toast);
 
+  const duration = type === "error" ? 5000 : 3000;
   requestAnimationFrame(() => toast.classList.add("toast--visible"));
   setTimeout(() => {
     toast.classList.remove("toast--visible");
     setTimeout(() => toast.remove(), 300);
-  }, 3000);
+  }, duration);
+}
+
+export function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.appendChild(document.createTextNode(str ?? ""));
+  return div.innerHTML;
+}
+
+export function validateImageFile(file) {
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+  if (!allowedTypes.includes(file.type)) {
+    return "Invalid file type. Allowed: JPEG, PNG, WebP, GIF";
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    return "File too large. Maximum size is 10MB";
+  }
+  return null;
 }
 
 export function setLoading(button, loading) {

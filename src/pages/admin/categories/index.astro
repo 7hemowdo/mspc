@@ -86,7 +86,7 @@ import AdminLayout from "@layouts/AdminLayout.astro";
 </AdminLayout>
 
 <script type="module">
-  import { api, slugify, showToast, setLoading } from "/admin/utils.js";
+  import { api, slugify, showToast, setLoading, escapeHtml, validateImageFile } from "/admin/utils.js";
 
   // ─── Image upload ─────────────────────────────────────────────────────
   const dropzone      = document.getElementById("cat-dropzone");
@@ -114,6 +114,9 @@ import AdminLayout from "@layouts/AdminLayout.astro";
   });
 
   async function handleFile(file) {
+    const validationError = validateImageFile(file);
+    if (validationError) { showToast(validationError, "error"); return; }
+
     dropzone.style.display = "none";
     preview.classList.add("has-image");
     previewImg.src = URL.createObjectURL(file);
@@ -125,6 +128,8 @@ import AdminLayout from "@layouts/AdminLayout.astro";
       imageUrlInput.value = url;
     } else {
       showToast("Image upload failed", "error");
+      preview.classList.remove("has-image");
+      dropzone.style.display = "";
     }
   }
 
@@ -153,8 +158,8 @@ import AdminLayout from "@layouts/AdminLayout.astro";
 
     tbody.innerHTML = cats.map(c => `
       <tr>
-        <td><img class="admin-table-img" src="${c.image_url || '/mspc-logo.png'}" alt="${c.name}" /></td>
-        <td><span class="admin-table-name">${c.name}</span></td>
+        <td><img class="admin-table-img" src="${escapeHtml(c.image_url || '/mspc-logo.png')}" alt="${escapeHtml(c.name)}" /></td>
+        <td><span class="admin-table-name">${escapeHtml(c.name)}</span></td>
         <td style="text-align:center">
           ${c.featured ? '<span class="status-badge status-badge--available">Yes</span>' : '<span style="color:var(--muted);font-size:0.82rem">—</span>'}
         </td>
@@ -191,10 +196,15 @@ import AdminLayout from "@layouts/AdminLayout.astro";
 
     tbody.querySelectorAll("[data-action='delete']").forEach(btn => {
       btn.addEventListener("click", async (e) => {
-        if (!confirm("Delete this category? Products in it will need to be reassigned.")) return;
+        if (!confirm("Delete this category? This will fail if products are still assigned to it.")) return;
         const res = await api(`/api/categories/${e.target.dataset.id}`, { method: "DELETE" });
-        if (res?.ok) { showToast("Category deleted"); loadCategories(); }
-        else showToast("Failed to delete", "error");
+        if (res?.ok) {
+          showToast("Category deleted");
+          loadCategories();
+        } else {
+          const data = await res.json().catch(() => null);
+          showToast(data?.error ?? "Failed to delete category", "error");
+        }
       });
     });
   }

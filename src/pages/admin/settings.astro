@@ -103,8 +103,20 @@ import AdminLayout from "@layouts/AdminLayout.astro";
   };
 
   async function loadSettings() {
+    const form = document.getElementById("settings-form");
+    form.style.opacity = "0.5";
+    form.style.pointerEvents = "none";
+
     const res = await api("/api/settings");
-    if (!res?.ok) return;
+
+    form.style.opacity = "";
+    form.style.pointerEvents = "";
+
+    if (!res?.ok) {
+      showToast("Failed to load settings", "error");
+      return;
+    }
+
     const settings = await res.json();
     settings.forEach(({ key, value }) => {
       const fieldId = FIELD_MAP[key];

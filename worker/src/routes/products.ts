@@ -48,7 +48,7 @@ export async function handleProducts(request: Request, env: Env): Promise<Respon
     return json(results, 200, origin);
   }
 
-  const authError = requireAuth(request, env);
+  const authError = requireAuth(request, env, origin);
   if (authError) return authError;
 
   if (request.method === "POST") {
@@ -67,7 +67,12 @@ export async function handleProducts(request: Request, env: Env): Promise<Respon
     };
 
     if (!body.name || !body.category_id) {
-      return error("name and category_id are required");
+      return error("name and category_id are required", 400, origin);
+    }
+
+    const validStatuses = ["available", "out-of-stock", "hidden"];
+    if (body.status && !validStatuses.includes(body.status)) {
+      return error("Invalid status value", 400, origin);
     }
 
     const slug = body.slug || slugify(body.name);
@@ -127,7 +132,7 @@ export async function handleProduct(
       .bind(id, id)
       .first();
 
-    if (!product) return error("Product not found", 404);
+    if (!product) return error("Product not found", 404, origin);
 
     const { results: specs } = await env.DB.prepare(
       "SELECT label, value FROM product_specs WHERE product_id = ? ORDER BY sort_order ASC"
@@ -138,7 +143,7 @@ export async function handleProduct(
     return json({ ...product, specs }, 200, origin);
   }
 
-  const authError = requireAuth(request, env);
+  const authError = requireAuth(request, env, origin);
   if (authError) return authError;
 
   if (request.method === "PUT") {
@@ -155,6 +160,11 @@ export async function handleProduct(
       is_published: number;
       specs: { label: string; value: string }[];
     }>;
+
+    const validStatuses = ["available", "out-of-stock", "hidden"];
+    if (body.status && !validStatuses.includes(body.status)) {
+      return error("Invalid status value", 400, origin);
+    }
 
     await env.DB.prepare(
       `UPDATE products

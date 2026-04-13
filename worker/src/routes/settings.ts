@@ -10,12 +10,12 @@ export async function handleSettings(request: Request, env: Env): Promise<Respon
     return json(results, 200, origin);
   }
 
-  const authError = requireAuth(request, env);
+  const authError = requireAuth(request, env, origin);
   if (authError) return authError;
 
   if (request.method === "POST") {
     const items = await request.json() as { key: string; value: string }[];
-    if (!Array.isArray(items)) return error("Expected array of {key, value}");
+    if (!Array.isArray(items)) return error("Expected array of {key, value}", 400, origin);
 
     for (const { key, value } of items) {
       await env.DB.prepare(
